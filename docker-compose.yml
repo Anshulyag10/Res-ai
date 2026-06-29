@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./AI-Research-Copilot-Backend
+    container_name: resai-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./AI-Research-Copilot-Backend/files:/app/files
+      - ./AI-Research-Copilot-Backend/indexes:/app/indexes
+      - ./AI-Research-Copilot-Backend/logs:/app/logs
+      - resai-db:/app           # persists resai.db
+    env_file:
+      - ./AI-Research-Copilot-Backend/.env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./AI-Research-Copilot-Frontend
+      args:
+        VITE_API_URL: http://localhost:8000
+    container_name: resai-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  resai-db:
